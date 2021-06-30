@@ -1,14 +1,31 @@
 <script>
 
-  import { Modal, TextArea } from 'carbon-components-svelte';
-  import {ParseGraph} from 'index.js'
-  let open = true;
+  import { ParseGraph } from "../lib/parsers";
+  import { clear } from "../lib/init";
+  import {
+    TextArea,
+    InlineNotification,
+    TextInput,
+  } from "carbon-components-svelte";
+  import {
+    ComposedModal,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+  } from "carbon-components-svelte";
+
+  export let graphBase;
+  export let name = "Untitled";
+
+
   let error = false;
   let graphList = "";
   let src = 'utils/graph.png';
 
   let invalid = false;
   const placeholder = "A-B\nA-C\nC-D";
+  let open = true;
+
   const check = () => {
     if (graphList.length <= 0) {
       error = true;
@@ -16,78 +33,79 @@
       error = false;
     }
   };
+
   // Function to pass the input to backend
   const passGraphList = () => {
     if (graphList.length <= 0) {
       error = true;
     } else {
-      open = false;
-      console.log(ParseGraph(graphList.toUpperCase().trim()));
+
+      try {
+        // Parse the Input string and get Edges & Nodes in Vis.js compatible format
+        graphBase = ParseGraph(graphList.toUpperCase().trim());
+        clear();
+      } catch (e) {
+        console.log(e);
+        error = true;
+      }
+
     }
   };
 </script>
 
-<Modal
-  bind:open
-  preventCloseOnClickOutside
+<ComposedModal
   size="lg"
-  modalHeading="Create Graph"
-  primaryButtonText="Create"
-  secondaryButtonText="Cancel"
-  on:click:button--secondary={() => {
-    //open = false;
-  }}
+  bind:open
   on:open
-  on:close={() => {
-    open = false;
-  }}
+  on:close
   on:submit={() => {
     passGraphList();
   }}
+  preventCloseOnClickOutside
 >
-  <div class="modal-body">
-    <p>Example:</p>
-    <img {src} id="eg-img" alt="Graph" />
-    <p>A-B A-C C-D</p>
-  </div>
-  <div class="modal-body">
-    <!-- <label style="font-size: large; padding-top: 2em;"
-      >Enter input -->
-    <TextArea
-      {invalid}
-      labelText="Enter Graph structure"
-      bind:value={graphList}
-      {placeholder}
-      on:change={() => {
-        check();
-      }}
-     
+
+  <ModalHeader title="Create Network" />
+  <ModalBody>
+    <TextInput
+      placeholder="Enter project Name"
+      required
+      label="Project Name"
+      style="max-width:max-content;font-size: 18px;"
+      bind:value={name}
+
     />
-    <!-- <input
-        type="text"
+    <div>
+      <p>Example:</p>
+      <img {src} id="eg-img" alt="Graph" />
+      <p>A-B A-C C-D</p>
+    </div>
+    <div>
+      <TextArea
+        {invalid}
+        labelText="Enter Graph structure"
         bind:value={graphList}
-        on:input={() => {
+        {placeholder}
+        on:change={() => {
           check();
         }}
-      /> -->
-    <!-- </label> -->
-
+      />
+    </div>
     {#if error}
-      <p style="color: red;">Please enter valid input!</p>
+      <InlineNotification
+        lowContrast
+        hideCloseButton
+        kind="error"
+        title="Error:"
+        subtitle={"Please Enter Valid Input"}
+      />
     {/if}
-  </div>
-</Modal>
+  </ModalBody>
+  <ModalFooter primaryButtonText="Create" />
+</ComposedModal>
 
 <style>
   #eg-img {
     height: 250px;
     width: 300px;
   }
-  /* input {
-    width: 20em;
-    border-radius: 15px;
-    border-color: black;
-    outline: none;
-    text-transform: uppercase;
-  } */
 </style>
