@@ -134,7 +134,8 @@
     bind:loadLocal={loadLocalOpen}
     bind:open={isSideNavOpen}
   />
-</SideNav>
+ </SideNav>
+
 <Content style="margin-top:2.5rem;padding: 0;margin-left: 0;">
   {#if graphBase}
     <NetworkEmulator bind:name bind:graphBase />
